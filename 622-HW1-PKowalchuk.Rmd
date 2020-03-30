@@ -1,0 +1,823 @@
+---
+title: "Data 622 - Homework 1"
+author: "Peter Kowalchuk"
+date: "3/28/2020"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE,warning=FALSE}
+library(kableExtra)
+library(naivebayes)
+library(dplyr)
+library(class) 
+library(ggplot2)
+```
+
+
+#Question 1
+
+You have been hired by a local electronics retailer and the above dataset has been given to you. Manager Bayes Jr. wants to create a spreadsheet to predict if a customer is likely prospect. To that end:
+
+##Dataset
+
+```{r}
+data <- read.csv("question1.csv", header = TRUE)
+data %>% kable() %>% kable_styling() %>% scroll_box(width = "800px")
+```
+
+##Priors
+1)Compute prior probabilities for the Prospect 
+
+Prior Priorities P(prospect=yes)   
+Prior Priorities P(prospect=no)
+
+```{r}
+(priorCount<-table(data$class.prospect))
+numberOfNo<-priorCount[1]
+numberOfYes<-priorCount[2]
+(numberOfSamples<-nrow(data))
+```
+
+```{r}
+(Pyes<-numberOfYes/numberOfSamples)
+(Pno<-numberOfNo/numberOfSamples)
+```
+
+##Conditional probabilities
+2) Compute the conditional probabilities. Compute the conditional probabilities for each predictor variable: age_group, networth, status, credit_rating.
+
+*age_group* 
+
+```{r}
+data %>% select(age.group,class.prospect) %>% kable() %>% kable_styling() %>% scroll_box(width = "800px")
+```
+
+
+P(age-group=youth|prospect=yes)    
+```{r}
+(numberOfYouthWithYes<-length(which((data$class.prospect=='yes') & (data$age.group=='youth'))))
+(PyouthGivenYes<-numberOfYouthWithYes/numberOfYes)
+```
+
+P(age-group=middle|prospect=yes)    
+```{r}
+(numberOfMiddleWithYes<-length(which((data$class.prospect=='yes') & (data$age.group=='middle'))))
+(PmiddleGivenYes<-numberOfMiddleWithYes/numberOfYes)
+```
+
+P(age-group=senior|prospect=yes)  
+```{r}
+(numberOfSeniorWithYes<-length(which((data$class.prospect=='yes') & (data$age.group=='senior'))))
+(PseniorGivenYes<-numberOfSeniorWithYes/numberOfYes)
+```
+
+We will add the probabilities to double check our calculations.
+
+```{r}
+PyouthGivenYes+PmiddleGivenYes+PseniorGivenYes
+```
+
+P(age-group=youth|prospect=no)   
+```{r}
+(numberOfYouthWithNo<-length(which((data$class.prospect=='no') & (data$age.group=='youth'))))
+(PyouthGivenNo<-numberOfYouthWithNo/numberOfNo)
+```
+
+P(age-group=middle|prospect=no)    
+```{r}
+(numberOfMiddleWithNo<-length(which((data$class.prospect=='no') & (data$age.group=='middle'))))
+(PmiddleGivenNo<-numberOfMiddleWithNo/numberOfNo)
+```
+
+P(age-group=senior|prospect=no)  
+```{r}
+(numberOfSeniorWithNo<-length(which((data$class.prospect=='no') & (data$age.group=='senior'))))
+(PseniorGivenNo<-numberOfSeniorWithNo/numberOfNo)
+```
+
+```{r}
+PyouthGivenNo+PmiddleGivenNo+PseniorGivenNo
+```
+
+*networth*
+
+```{r}
+data %>% select(networth,class.prospect) %>% kable() %>% kable_styling() %>% scroll_box(width = "800px")
+```
+
+P(networth=high|prospect=yes)    
+```{r}
+(numberOfHighWithYes<-length(which((data$class.prospect=='yes') & (data$networth=='high'))))
+(PhighGivenYes<-numberOfHighWithYes/numberOfYes)
+```
+
+P(networth=low|prospect=yes)   
+```{r}
+(numberOfLowWithYes<-length(which((data$class.prospect=='yes') & (data$networth=='low'))))
+(PlowGivenYes<-numberOfLowWithYes/numberOfYes)
+```
+
+P(networth=medium|prospect=yes)  
+```{r}
+(numberOfMediumWithYes<-length(which((data$class.prospect=='yes') & (data$networth=='medium'))))
+(PmediumGivenYes<-numberOfMediumWithYes/numberOfYes)
+```
+
+```{r}
+PhighGivenYes+PlowGivenYes+PmediumGivenYes
+```
+
+P(networth=high|prospect=no)    
+```{r}
+(numberOfHighWithNo<-length(which((data$class.prospect=='no') & (data$networth=='high'))))
+(PhighGivenNo<-numberOfHighWithNo/numberOfNo)
+```
+
+P(networth=low|prospect=no)   
+```{r}
+(numberOfLowWithNo<-length(which((data$class.prospect=='no') & (data$networth=='low'))))
+(PlowGivenNo<-numberOfLowWithNo/numberOfNo)
+```
+
+P(networth=medium|prospect=no)  
+```{r}
+(numberOfMediumWithNo<-length(which((data$class.prospect=='no') & (data$networth=='medium'))))
+(PmediumGivenNo<-numberOfMediumWithNo/numberOfNo)
+```
+
+```{r}
+PhighGivenNo+PlowGivenNo+PmediumGivenNo
+```
+
+*status*
+
+```{r}
+data %>% select(status,class.prospect) %>% kable() %>% kable_styling() %>% scroll_box(width = "800px")
+```
+
+P(status=employed|prospect=yes)   
+```{r}
+(numberOfEmployedWithYes<-length(which((data$class.prospect=='yes') & (data$status=='employed'))))
+(PemployedGivenYes<-numberOfEmployedWithYes/numberOfYes)
+```
+
+P(status=unemployed|prospect=yes)  
+```{r}
+(numberOfUnemployedWithYes<-length(which((data$class.prospect=='yes') & (data$status=='unemployed'))))
+(PunemployedGivenYes<-numberOfUnemployedWithYes/numberOfYes)
+```
+
+```{r}
+PemployedGivenYes+PunemployedGivenYes
+```
+
+P(status=employed|prospect=no)   
+```{r}
+(numberOfEmployedWithNo<-length(which((data$class.prospect=='no') & (data$status=='employed'))))
+(PemployedGivenNo<-numberOfEmployedWithNo/numberOfNo)
+```
+
+P(status=unemployed|prospect=no)  
+```{r}
+(numberOfUnemployedWithNo<-length(which((data$class.prospect=='no') & (data$status=='unemployed'))))
+(PunemployedGivenNo<-numberOfUnemployedWithNo/numberOfNo)
+```
+
+```{r}
+PemployedGivenNo+PunemployedGivenNo
+```
+  
+*credit_rating*  
+
+```{r}
+data %>% select(credit_rating,class.prospect) %>% kable() %>% kable_styling() %>% scroll_box(width = "800px")
+```
+  
+P(credit=fair|prospect=yes)   
+```{r}
+(numberOfFairWithYes<-length(which((data$class.prospect=='yes') & (data$credit=='fair'))))
+(PfairGivenYes<-numberOfFairWithYes/numberOfYes)
+```
+
+P(credit=excellent|prospect=yes)  
+```{r}
+(numberOfExcellentdWithYes<-length(which((data$class.prospect=='yes') & (data$credit=='excellent'))))
+(PexcellentGivenYes<-numberOfExcellentdWithYes/numberOfYes)
+```
+
+```{r}
+PfairGivenYes+PexcellentGivenYes
+```
+
+P(credit=fair|prospect=no)   
+```{r}
+(numberOfFairWithNo<-length(which((data$class.prospect=='no') & (data$credit=='fair'))))
+(PfairGivenNo<-numberOfFairWithNo/numberOfNo)
+```
+
+P(credit=excellent|prospect=no)  
+```{r}
+(numberOfExcellentWithNo<-length(which((data$class.prospect=='no') & (data$credit=='excellent'))))
+(PexcellentGivenNo<-numberOfExcellentWithNo/numberOfNo)
+```
+
+```{r}
+PfairGivenNo+PexcellentGivenNo
+```  
+
+##Posteriors
+3) Assuming the assumptions of Naive Bayes are met compute the posterior probability.
+
+The posterior probabilities answer the questions the manager has, to know if a given costumer is a likely porspect. 
+
+For example, given a costumer:    
+- Age group: youth    
+- Net worth: high    
+- Status: employed    
+ - Credit rating: fair    
+ What is the probability this is a prospect client?  We canculate the propability of yes being a prospect given all the conditions, and no not being a prospects given the same conditions. The highest of the two gives us the answer. To calculate both of these probabilities, we should be dividing by the multiplication of the feature marginals. We have not calculated this, but we really don't need to since both are devided by the same multiplication.
+
+P(prospect=yes|age-group=youth,networth=hgh,status=employed,credit=fair) 
+
+This is a posterior probability
+
+```{r}
+(PposteriorYes <- (PyouthGivenYes * PhighGivenYes * PemployedGivenYes * PfairGivenYes) * Pyes )  
+```
+
+```{r}
+(PposteriorNo <- (PyouthGivenNo * PhighGivenNo * PemployedGivenNo * PfairGivenNo) * Pno )  
+```
+
+This costumer does not seem to be a good prospect according to our classifier.
+
+The resusts are not probabilities. To calculate actual probabilities we need to devide both by the marginal probability of each feature. We first calculate these marginal.
+
+```{r}
+(priorCount<-table(data$age.group))
+numberOfMiddle<-priorCount[1]
+numberOfSenior<-priorCount[2]
+numberOfYouth<-priorCount[3]
+```
+
+```{r}
+(Pyouth<-numberOfYouth/numberOfSamples)
+(Pmiddle<-numberOfMiddle/numberOfSamples)
+(Psenior<-numberOfSenior/numberOfSamples)
+```
+
+```{r}
+Pyouth+Pmiddle+Psenior
+```
+
+```{r}
+(priorCount<-table(data$networth))
+numberOfHigh<-priorCount[1]
+numberOfLow<-priorCount[2]
+numberOfMedium<-priorCount[3]
+```
+
+```{r}
+(Plow<-numberOfLow/numberOfSamples)
+(Pmedium<-numberOfMedium/numberOfSamples)
+(Phigh<-numberOfHigh/numberOfSamples)
+```
+
+```{r}
+Phigh+Plow+Pmedium
+```
+
+```{r}
+(priorCount<-table(data$status))
+numberOfEmployed<-priorCount[1]
+numberOfUnemployed<-priorCount[2]
+```
+
+```{r}
+(Pemployed<-numberOfEmployed/numberOfSamples)
+(Punemployed<-numberOfUnemployed/numberOfSamples)
+```
+
+```{r}
+Pemployed+Punemployed
+```
+
+```{r}
+(priorCount<-table(data$credit_rating))
+numberOfExcellent<-priorCount[1]
+numberOfFair<-priorCount[2]
+```
+
+```{r}
+(Pfair<-numberOfFair/numberOfSamples)
+(Pexcellent<-numberOfExcellent/numberOfSamples)
+```
+
+```{r}
+Pfair+Pexcellent
+```
+
+Going back to our case:     
+- Age group: youth    
+- Net worth: high    
+- Status: employed    
+ - Credit rating: fair   
+
+```{r}
+PposteriorYes<- (PyouthGivenYes * PhighGivenYes * PemployedGivenYes * PfairGivenYes) * Pyes 
+(PposteriorYes<-PposteriorYes / (Pyouth * Phigh * Pemployed * Pfair))
+```
+
+```{r}
+PposteriorNo<- (PyouthGivenNo * PhighGivenNo * PemployedGivenNo * PfairGivenNo) * Pno 
+(PposteriorNo<-PposteriorNo / (Pyouth * Phigh * Pemployed * Pfair))
+``` 
+
+We can try another case: 
+
+- Age group: youth    
+- Net worth: high    
+- Status: unemployed    
+ - Credit rating: excellent
+ 
+```{r}
+PposteriorYes<- (PyouthGivenYes * PhighGivenYes * PunemployedGivenYes * PexcellentGivenYes) * Pyes 
+(PposteriorYes<-PposteriorYes / (Pyouth * Phigh * Punemployed * Pexcellent))
+```
+
+```{r}
+PposteriorNo<- (PyouthGivenNo * PhighGivenNo * PunemployedGivenNo * PexcellentGivenNo) * Pno 
+(PposteriorNo<-PposteriorNo / (Pyouth * Phigh * Punemployed * Pexcellent))
+``` 
+
+We can also use the naivebayses library to calculate the classification.
+
+```{r}
+test<-data[1,!(names(data) %in% c('class.prospect'))]
+test[1,1]<-'youth'
+test[1,2]<-'high'
+test[1,3]<-'employed'
+test[1,4]<-'excellent'
+test
+```
+
+```{r}
+model<-naive_bayes(class.prospect~.,data=data,laplace = 0)
+predict(model,test,type = 'prob')
+```
+
+As we can see we obtain silar classification results.
+
+We can try third and final case: 
+
+- Age group: senior    
+- Net worth: low    
+- Status: unemployed    
+ - Credit rating: excellent
+ 
+```{r}
+PposteriorYes<- (PseniorGivenYes * PlowGivenYes * PunemployedGivenYes * PexcellentGivenYes) * Pyes 
+(PposteriorYes<-PposteriorYes / (Psenior * Plow * Punemployed * Pexcellent))
+```
+
+```{r}
+PposteriorNo<- (PseniorGivenNo * PlowGivenNo * PunemployedGivenNo * PexcellentGivenNo) * Pno 
+(PposteriorNo<-PposteriorNo / (Psenior * Plow * Punemployed * Pexcellent))
+``` 
+
+We can also use the naivebayses library to calculate the classification.
+
+```{r}
+test<-data[1,!(names(data) %in% c('class.prospect'))]
+test[1,1]<-'senior'
+test[1,2]<-'low'
+test[1,3]<-'unemployed'
+test[1,4]<-'excellent'
+test
+```
+
+```{r}
+model<-naive_bayes(class.prospect~.,data=data,laplace = 0)
+predict(model,test,type = 'prob')
+```
+
+Again we get a similar classification with the manual process and the library.
+
+
+#Question 2
+
+You just recently joined a datascience team.
+
+There are two datasets junk1.txt and junk2.csv
+They have two options
+1. They can go back to the client and ask for more data
+to remedy problems with the data.
+2. They can accept the data and undertake a major analytics exercise.
+
+The team is relying on your dsc skills to determine how they
+should proceed.
+
+Can you explore the data and recommend actions for each file
+enumerating the reasons.
+
+##Data load
+
+```{r}
+junk1 <- read.csv("junk1.txt", sep = ' ',  header = TRUE)
+junk1 %>% kable() %>% kable_styling() %>% scroll_box(width = "800px", height = "400px")
+```
+
+```{r}
+junk2 <- read.csv("junk2.csv", header = TRUE)
+junk2 %>% kable() %>% kable_styling() %>% scroll_box(width = "800px", height = "400px")
+```
+
+##Missing data
+
+We look for any missing data and notice there isn't any.
+
+```{r}
+sapply(junk1, function(x) round(sum(is.na(x))/nrow(junk1)*100,1))
+```
+
+```{r}
+sapply(junk2, function(x) round(sum(is.na(x))/nrow(junk2)*100,1))
+```
+
+##Descriptive statistics
+
+We look at a summary of the data undestand some of the descriptive statistics of the dataset.
+
+```{r}
+summary(junk1)
+```
+
+Data seems to be properly distributed, with no indication of outliers. We can plot a histogram to have a more graphical view.
+
+```{r}
+hist(junk1$a)
+```
+
+```{r}
+hist(junk1$b)
+```
+
+Bor variables look well distributed around their means, showing good normality. This is a good feayure for parametric modeling where an underlaying data distribution is assumed.
+
+```{r}
+summary(junk2)
+```
+
+```{r}
+hist(junk2$a)
+```
+
+```{r}
+hist(junk2$b)
+```
+
+Same as with the first dataset, data looks well distributed. The distributions here looks a like more skewed, but it isn't extreme. If it is necessary to use a parametric modeling, a different distribution from normal could be considered to better handle the skew. But no major issues are expected in modeling.
+
+##Balance
+
+We look at the class vaeibale to see if the dataset are balanced.
+
+```{r}
+dim(junk1)
+table(junk1$class)
+```
+
+ Junk1 is very well balanced with half of the 100 entries in each class. Junk2 on the other hand shows an imbalance.
+
+```{r}
+dim(junk2)
+table(junk2$class)
+table(junk2$class)[1]/nrow(junk2)
+table(junk2$class)[2]/nrow(junk2)
+```
+
+Only ~6 percent of the data is assigned to class 1. This imbalance will make it hard to use the data with many of the classification algorithm. A recommendation would be to bootstrap the data to increase the number of class 1 entries. Although imbalance will still be present, the class will be better represented. To ameliorate imbalance, techniques such as SMOTE should also be considered.
+
+##Scattered plots
+
+Scattered plot will help us understand the relationship between the variables and their own nature. We start by plotting variables on their own.
+
+```{r}
+ggplot(junk1,aes(y=a,x=seq_along(a),color=as.factor(class))) + geom_point()
+```
+
+Here we see how the data is modal against the index, and we see a segregation against the class. These could be due to the nature of how the data was gathered, seems the 50 first samples were collected for one class, then the other 50.
+
+
+```{r}
+ggplot(junk1,aes(y=b,x=seq_along(b),color=as.factor(class))) + geom_point()
+```
+
+The second variable shows very similar characteristics. Here the sampling seems to come from a sinusoidal wave over the index.
+
+Finbaly we plot both together.
+
+```{r}
+ggplot(junk1,aes(x=a,y=b,color=as.factor(class))) + geom_point()
+```
+
+Plotting both variables together it is not apparent how the split them in two classes, but the data stills shows valuable for analysis.
+
+We do the same for the second file.
+
+```{r}
+ggplot(junk2,aes(y=a,x=seq_along(a),color=as.factor(class))) + geom_point()
+```
+
+```{r}
+ggplot(junk2,aes(y=b,x=seq_along(b),color=as.factor(class))) + geom_point()
+```
+
+Similar results as with the first file, although not as modal.
+
+```{r}
+ggplot(junk2,aes(x=a,y=b,color=as.factor(class))) + geom_point()
+```
+
+Plotting both variables looks a bit more interesting this time. We can see good separation between classes. We can almost suggest using a classifier such as an SVM to "circle in" one of the classes.
+
+##Conclusion
+
+After looking at the data, there is not indication of requiring more data gathering or discarding any of the provided data. Recommendation is to continue with the analysis with the data on hand. No issues with the same as expected, other than some extra steps to balance one of the datasets.
+
+#Question 3
+
+Load supplied data and prepare dataset, runa and edit supplied code (kNN.R) for this dataset and run same with different values of K. Plot accuracy for these different values. Provide summary of results.
+
+##Dataset preparation
+
+The kNN.R R script requires a dataset, labelcol and K (number of nearest neighbors to be considered). The dataset MUST Be numeric, except the labelcol. The labelcol must be the last column in the data.frame. All the other columns must be before the labelcol.
+
+Please find icu.csv 
+
+```{r}
+data <- read.csv("icu.csv", header = TRUE)
+data %>% kable() %>% kable_styling() %>% scroll_box(width = "800px", height = "400px")
+```
+
+Please note that the dataset does not have a predictor variable called COMA. Add a variable COMA in the dataset, here is how you can derive COMA from LOC variable:
+
+If LOC is 2 set COMA to 1 otherwise set COMA to 0
+
+```{r}
+data$COMA<-ifelse(data$LOC==2,1,0)
+data %>% kable() %>% kable_styling() %>% scroll_box(width = "800px", height = "400px")
+```
+
+The formula to fit is "STA ~ TYP + COMA + AGE + INF"
+
+Read the icu.csv subset it with these 5 features in the formula and STA is the labelcol.
+
+```{r}
+data<-subset(data, select = c(STA,TYP,COMA,AGE,INF) )
+data <- data %>% select(-STA,STA)
+data %>% kable() %>% kable_styling() %>% scroll_box(width = "800px", height = "400px")
+```
+
+```{r}
+data$TYP<-as.numeric(data$TYP)
+data$AGE<-as.numeric(data$AGE)
+data$INF<-as.numeric(data$INF)
+data$STA<-as.factor(data$STA)
+str(data)
+```
+
+We compare the structure of our dataframe with that of the datset used in the supplied kNN function.
+
+```{r}
+knn.df<-iris
+str(knn.df)
+```
+
+We observe they both have the same structure.
+
+##kNN.r
+
+run the kNN.R for K=(3,5,7,15,25,50)
+
+```{r}
+euclideanDist <- function(a, b){
+  d = 0
+  for(i in c(1:(length(a)) ))
+  {
+    d = d + (a[[i]]-b[[i]])^2
+  }
+  d = sqrt(d)
+  return(d)
+}
+
+knn_predict2 <- function(test_data, train_data, k_value, labelcol){
+  pred <- c()  #empty pred vector 
+  #LOOP-1
+  for(i in c(1:nrow(test_data))){   #looping over each record of test data
+    eu_dist =c()          #eu_dist & eu_char empty  vector
+    eu_char = c()
+    good = 0              #good & bad variable initialization with 0 value
+    bad = 0
+    
+    #LOOP-2-looping over train data 
+    for(j in c(1:nrow(train_data))){
+ 
+      #adding euclidean distance b/w test data point and train data to eu_dist vector
+      eu_dist <- c(eu_dist, euclideanDist(test_data[i,-c(labelcol)], train_data[j,-c(labelcol)]))
+ 
+      #adding class variable of training data in eu_char
+      eu_char <- c(eu_char, as.character(train_data[j,][[labelcol]]))
+    }
+    
+    eu <- data.frame(eu_char, eu_dist) #eu dataframe created with eu_char & eu_dist columns
+ 
+    eu <- eu[order(eu$eu_dist),]       #sorting eu dataframe to gettop K neighbors
+    eu <- eu[1:k_value,]               #eu dataframe with top K neighbors
+ 
+    tbl.sm.df<-table(eu$eu_char)
+    cl_label<-  names(tbl.sm.df)[[as.integer(which.max(tbl.sm.df))]]
+    
+    pred <- c(pred, cl_label)
+    }
+    return(pred) #return pred vector
+  }
+  
+
+accuracy <- function(test_data,labelcol,predcol){
+  correct = 0
+  for(i in c(1:nrow(test_data))){
+    if(test_data[i,labelcol] == test_data[i,predcol]){ 
+      correct = correct+1
+    }
+  }
+  accu = (correct/nrow(test_data)) * 100  
+  return(accu)
+}
+```
+
+We load our data to run the supplied function.
+
+```{r}
+#load data
+#knn.df<-iris
+knn.df<-data
+labelcol <- 5 # for our new dataset it is the fifth col 
+predictioncol<-labelcol+1
+# create train/test partitions
+set.seed(2)
+n<-nrow(knn.df)
+knn.df<- knn.df[sample(n),]
+train.df <- knn.df[1:as.integer(0.7*n),]
+```
+
+##Model results
+
+run the kNN.R for K=(3,5,7,15,25,50)
+submit the result confusionMatrix, Accuracy for each K
+
+```{r}
+ks<-c(3,5,7,15,25,50)
+acc<-vector()
+for(i in 1:length(ks)) {
+  K = ks[i] # number of neighbors to determine the class
+  #table(train.df[,labelcol])
+  test.df <- knn.df[as.integer(0.7*n +1):n,]
+  #table(test.df[,labelcol])
+
+  predictions <- knn_predict2(test.df, train.df, K,labelcol) #calling knn_predict()
+
+  test.df[,predictioncol] <- predictions #Adding predictions in test data as 7th column
+  acc<-c(acc,accuracy(test.df,labelcol,predictioncol))
+  print(paste('Accuracy for K=',K,' is ',acc[i]))
+  print('Confusion Matrix')
+  print(table(test.df[[predictioncol]],test.df[[labelcol]]))
+}
+```
+
+Plot Accuracy vs K.
+
+```{r}
+plot(ks,acc)
+```
+
+Results with the new dataset are not very good, in fact the high accuracy is really due to how imbalanced the dataset is. We run the same code with the Iris dataset, which is observed in the confusion matrices.
+
+```{r}
+#load data
+knn.df<-iris
+labelcol <- 5 # for iris it is the fifth col 
+predictioncol<-labelcol+1
+# create train/test partitions
+set.seed(2)
+n<-nrow(knn.df)
+knn.df<- knn.df[sample(n),]
+train.df <- knn.df[1:as.integer(0.7*n),]
+
+acc<-vector()
+for(i in 1:length(ks)) {
+  K = ks[i] # number of neighbors to determine the class
+  #table(train.df[,labelcol])
+  test.df <- knn.df[as.integer(0.7*n +1):n,]
+  #table(test.df[,labelcol])
+
+  predictions <- knn_predict2(test.df, train.df, K,labelcol) #calling knn_predict()
+
+  test.df[,predictioncol] <- predictions #Adding predictions in test data as 7th column
+  acc<-c(acc,accuracy(test.df,labelcol,predictioncol))
+  print(paste('Accuracy for K=',K,' is ',acc[i]))
+  print('Confusion Matrix')
+  print(table(test.df[[predictioncol]],test.df[[labelcol]]))
+}
+```
+
+```{r}
+plot(ks,acc)
+```
+
+We can see how the same code shows much better results in both accuracy and on the confusion matrices. We also observe how higher values of K do not necesarily reflect in beter results, same as we saw with the new dataset. 
+
+We can also compare our results from the Iris dataset to those using the Class library knn function.
+
+```{r}
+#load data
+knn.df<-iris
+labelcol <- 5 # for iris it is the fifth col 
+predictioncol<-labelcol+1
+# create train/test partitions
+set.seed(2)
+n<-nrow(knn.df)
+knn.df<- knn.df[sample(n),]
+train.df <- knn.df[1:as.integer(0.7*n),]
+
+acc<-vector()
+for(i in 1:length(ks)) {
+  K = ks[i] # number of neighbors to determine the class
+  #table(train.df[,labelcol])
+  test.df <- knn.df[as.integer(0.7*n +1):n,]
+  #table(test.df[,labelcol])
+
+  #predictions <- knn_predict2(test.df, train.df, K,labelcol) #calling knn_predict()
+  predictions <-knn(train.df[,-5],test.df[,-5],train.df$Species,k=K)
+
+  test.df[,predictioncol] <- predictions #Adding predictions in test data as 7th column
+  acc<-c(acc,accuracy(test.df,labelcol,predictioncol))
+  print(paste('Accuracy for K=',K,' is ',acc[i]))
+  print('Confusion Matrix')
+  print(table(test.df[[predictioncol]],test.df[[labelcol]]))
+}
+```
+
+```{r}
+plot(ks,acc)
+```
+
+We see how we get the same results, validating out by hand function.
+
+```{r}
+#load data
+knn.df<-data
+labelcol <- 5 # for iris it is the fifth col 
+predictioncol<-labelcol+1
+# create train/test partitions
+set.seed(2)
+n<-nrow(knn.df)
+knn.df<- knn.df[sample(n),]
+train.df <- knn.df[1:as.integer(0.7*n),]
+
+acc<-vector()
+for(i in 1:length(ks)) {
+  K = ks[i] # number of neighbors to determine the class
+  #table(train.df[,labelcol])
+  test.df <- knn.df[as.integer(0.7*n +1):n,]
+  #table(test.df[,labelcol])
+
+  #predictions <- knn_predict2(test.df, train.df, K,labelcol) #calling knn_predict()
+  predictions <-knn(train.df,test.df,train.df$STA,k=K)
+
+  test.df[,predictioncol] <- predictions #Adding predictions in test data as 7th column
+  acc<-c(acc,accuracy(test.df,labelcol,predictioncol))
+  print(paste('Accuracy for K=',K,' is ',acc[i]))
+  print('Confusion Matrix')
+  print(table(test.df[[predictioncol]],test.df[[labelcol]]))
+}
+```
+
+```{r}
+plot(ks,acc)
+```
+
+Again we see similar results, with the unbalanced dataset affects the results, especially visible in the confusion matrices. 
+
+#Summary
+
+In this exercise we were able to successfully run the provided kNN function to our data. Some data conditioning was required to fulfill the requirements of the function. The data provided was conditioned to have the same structure as the sample data used in the kNN function. The results though were not ideal. The newly supplied dataset is highly unbalanced, which is reflected in the results. Even though the accuracy calculation are encouraging, the confusion matrix shows this is due to the imbalance in the data itself. The knn function from the CLass library was used to confirm the findings.
+
