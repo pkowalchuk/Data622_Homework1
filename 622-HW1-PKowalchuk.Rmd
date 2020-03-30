@@ -817,7 +817,7 @@ plot(ks,acc)
 
 Again we see similar results, with the unbalanced dataset affects the results, especially visible in the confusion matrices. 
 
-#Summary
+##Summary
 
 In this exercise we were able to successfully run the provided kNN function to our data. Some data conditioning was required to fulfill the requirements of the function. The data provided was conditioned to have the same structure as the sample data used in the kNN function. The results though were not ideal. The newly supplied dataset is highly unbalanced, which is reflected in the results. Even though the accuracy calculation are encouraging, the confusion matrix shows this is due to the imbalance in the data itself. The knn function from the CLass library was used to confirm the findings.
 
